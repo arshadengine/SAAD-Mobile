@@ -85,7 +85,7 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
       style={{ colorScheme: 'light' }}
     >
       {/* Top Black Header Banner */}
-      <div className="bg-[#121417] text-white p-5 relative border-b-4 border-[#d4af37]">
+      <div className="bg-[#121417] text-white py-2.5 px-5 relative border-b-4 border-[#d4af37]">
         <div className="flex flex-row items-center gap-5">
           {/* Logo Section */}
           <div className="shrink-0">
@@ -93,15 +93,15 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
               <img
                 src={shopSettings.logoUrl}
                 alt={shopSettings.shopName}
-                className="h-24 w-24 object-contain rounded-full border-2 border-[#d4af37]"
+                className="h-20 w-20 object-contain rounded-full border-2 border-[#d4af37]"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/logo.png';
                 }}
               />
             ) : (
-              <div className="w-24 h-24 rounded-full border-2 border-[#d4af37] bg-black flex flex-col justify-center items-center p-2 text-center">
-                <span className="text-[#d4af37] font-extrabold text-xl leading-none">SAAD</span>
-                <span className="text-white text-xs font-bold tracking-widest mt-1">MOBILE</span>
+              <div className="w-20 h-20 rounded-full border-2 border-[#d4af37] bg-black flex flex-col justify-center items-center p-2 text-center">
+                <span className="text-[#d4af37] font-extrabold text-lg leading-none">SAAD</span>
+                <span className="text-white text-[10px] font-bold tracking-widest mt-1">MOBILE</span>
               </div>
             )}
           </div>
@@ -121,7 +121,7 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
             {/* Service Badges */}
             <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-[10px] text-slate-200 mt-2.5 font-medium">
               <span className="flex items-center gap-1">
-                🛒 <span>NEW MOBILES</span>
+                🛒 <span>SECOND HAND MOBILES</span>
               </span>
               <span className="flex items-center gap-1">
                 🔧 <span>REPAIRING</span>
@@ -156,50 +156,59 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
       </div>
 
       {/* Main Content Area */}
-      <div className="p-6 bg-slate-50 space-y-5">
+      <div className="p-4 bg-slate-50 space-y-3.5">
         {/* Title */}
-        <div className="text-center">
-          <h2 className="text-lg font-black text-slate-900 tracking-wider uppercase inline-block border-b-2 border-slate-900 pb-0.5">
+        <div className="text-center flex items-center justify-center gap-4 my-1">
+          <span className="h-[1.5px] bg-[#d4af37] w-12 inline-block"></span>
+          <h2 className="text-lg font-black text-slate-900 tracking-wider uppercase">
             CASH / TAX INVOICE
           </h2>
+          <span className="h-[1.5px] bg-[#d4af37] w-12 inline-block"></span>
         </div>
 
         {/* Bill Meta Data */}
-        <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-800 border-b border-dashed border-slate-300 pb-3">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-xs font-semibold text-slate-800 border-b border-dashed border-slate-350 pb-3">
           <div className="space-y-1">
             <div className="flex">
-              <span className="w-20 text-slate-600 font-bold">Bill No.</span>
+              <span className="w-16 text-slate-600 font-bold">Bill No.</span>
               <span className="w-4 text-center">:</span>
               <span className="font-mono font-black text-slate-900">{receipt.billNumber}</span>
             </div>
             <div className="flex">
-              <span className="w-20 text-slate-600 font-bold">Date</span>
+              <span className="w-16 text-slate-600 font-bold">Date</span>
               <span className="w-4 text-center">:</span>
               <span>{formatInvoiceDate(receipt.date)}</span>
             </div>
+            <div className="flex">
+              <span className="w-16 text-slate-600 font-bold">Time</span>
+              <span className="w-4 text-center">:</span>
+              <span>{receipt.time}</span>
+            </div>
           </div>
 
-          <div className="space-y-1 text-right">
-            <div className="flex justify-end">
-              <span className="w-20 text-slate-600 font-bold text-left">Time</span>
+          <div className="space-y-1 pl-8">
+            <div className="flex">
+              <span className="w-28 text-slate-600 font-bold">Sales Type</span>
               <span className="w-4 text-center">:</span>
-              <span className="w-24 text-right">{receipt.time}</span>
+              <span>{receipt.salesType || 'Retail'}</span>
             </div>
-            <div className="flex justify-end">
-              <span className="w-20 text-slate-600 font-bold text-left">Sales Type</span>
+            <div className="flex">
+              <span className="w-28 text-slate-600 font-bold">Payment Method</span>
               <span className="w-4 text-center">:</span>
-              <span className="w-24 text-right">{receipt.salesType || 'Retail'}</span>
+              <span>{receipt.paymentMethod || 'Cash'}</span>
             </div>
           </div>
         </div>
 
-        {/* Customer Details */}
-        <div className="border-b border-dashed border-slate-300 pb-3 text-xs">
-          <h3 className="font-extrabold text-slate-900 uppercase tracking-wide mb-2">
-            CUSTOMER DETAILS
-          </h3>
-          <div className="grid grid-cols-12 gap-4 font-semibold text-slate-800">
-            <div className="col-span-7 space-y-1">
+        {/* Customer Details Box */}
+        <div className="border-t border-b border-dashed border-slate-350 py-2.5 text-xs">
+          <div className="bg-[#121417] text-[#d4af37] px-3 py-1 font-black uppercase tracking-wider text-[10px] rounded-sm inline-block mb-2 select-none">
+            <span>👥</span>
+            <span className="ml-1.5">CUSTOMER DETAILS</span>
+          </div>
+          <div className="grid grid-cols-12 items-center font-semibold text-slate-800">
+            {/* Left side: Name and Mobile */}
+            <div className="col-span-6 space-y-1.5 pl-1">
               <div className="flex items-center">
                 <span className="w-20 text-slate-500 font-bold">Name</span>
                 <span className="w-4 text-slate-400">:</span>
@@ -211,100 +220,177 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
                 <span className="font-mono text-slate-900 font-bold">{receipt.customerPhone || '-'}</span>
               </div>
             </div>
-            <div className="col-span-5 space-y-1">
-              <div className="flex items-start">
-                <span className="w-16 text-slate-500 font-bold">Address</span>
-                <span className="w-4 text-slate-400">:</span>
-                <span className="text-slate-900 font-medium">{receipt.customerAddress || '-'}</span>
+
+            {/* Middle vertical line divider */}
+            <div className="col-span-1 flex justify-center h-8">
+              <div className="w-[1px] bg-slate-300 h-full"></div>
+            </div>
+
+            {/* Right side: Address */}
+            <div className="col-span-5 flex items-start gap-1 pl-4">
+              <span className="text-amber-500">📍</span>
+              <span className="text-slate-500 font-bold">Address</span>
+              <span className="text-slate-400 font-bold mx-1">:</span>
+              <span className="text-slate-900 font-medium break-all">{receipt.customerAddress || '-'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Product Details Section */}
+        <div className="space-y-3">
+          <div className="bg-[#121417] text-[#d4af37] px-3 py-1 font-black uppercase tracking-wider text-[10px] rounded-sm inline-block select-none">
+            <span>📱</span>
+            <span className="ml-1.5">PRODUCT DETAILS</span>
+          </div>
+
+          {/* Product Details Table */}
+          <div className="text-xs">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#121417] text-[#d4af37] text-[11px] font-black uppercase border border-[#121417] select-none">
+                  <th className="py-2 px-2 border-r border-[#333] text-center w-8">#</th>
+                  <th className="py-2 px-3 border-r border-[#333]">ITEM DETAILS</th>
+                  <th className="py-2 px-3 border-r border-[#333]">IMEI NUMBER</th>
+                  <th className="py-2 px-2 border-r border-[#333] text-center w-12">QTY</th>
+                  <th className="py-2 px-3 border-r border-[#333] text-right w-28">PRICE (₹)</th>
+                  <th className="py-2 px-3 text-right w-28">AMOUNT (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="bg-white border border-slate-300 border-t-0">
+                  <td className="py-2 px-2 border-r border-slate-300 text-center font-bold text-slate-700 align-middle">
+                    1
+                  </td>
+                  <td className="py-2 px-3 border-r border-slate-300 align-middle">
+                    <div className="font-bold text-slate-900 text-sm">{receipt.mobileModel}</div>
+                    {receipt.ramStorage && (
+                      <div className="text-[11px] text-slate-500 font-medium mt-0.5">
+                        {receipt.ramStorage} {receipt.color ? `(${receipt.color})` : ''}
+                      </div>
+                    )}
+                  </td>
+                  <td className="py-2 px-3 border-r border-slate-300 font-mono text-[11px] text-slate-700 align-middle space-y-0.5">
+                    {receipt.imei1 && (
+                      <div>
+                        <span className="font-semibold text-slate-900">IMEI 1:</span> {receipt.imei1}
+                      </div>
+                    )}
+                    {appSettings.showImei2 && receipt.imei2 && (
+                      <div>
+                        <span className="font-semibold text-slate-900">IMEI 2:</span> {receipt.imei2}
+                      </div>
+                    )}
+                  </td>
+                  <td className="py-2 px-2 border-r border-slate-300 text-center font-bold text-slate-800 align-middle">
+                    {qty}
+                  </td>
+                  <td className="py-2 px-3 border-r border-slate-300 text-right font-mono font-semibold text-slate-900 align-middle">
+                    {formatCurrency(unitPrice)}
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono font-bold text-slate-900 align-middle">
+                    {formatCurrency(totalAmount)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Split Section: Payment Summary & Thank You Column */}
+        <div className="grid grid-cols-2 gap-6 items-start">
+          {/* Left Column: Payment Summary Box */}
+          <div>
+            <div className="bg-[#121417] text-[#d4af37] px-3 py-1.5 font-black uppercase tracking-wider text-[10px] rounded-t flex items-center gap-1.5 border border-[#121417] select-none">
+              <span>💳</span>
+              <span>PAYMENT SUMMARY</span>
+            </div>
+            <div className="border border-slate-300 border-t-0 p-4 bg-white rounded-b space-y-1.5">
+              <div className="flex justify-between font-semibold text-slate-700 px-1 text-[11px]">
+                <span>Subtotal</span>
+                <span className="font-mono text-slate-900">₹ {formatCurrency(subtotal)}</span>
+              </div>
+              <div className="flex justify-between font-semibold text-slate-700 px-1 text-[11px]">
+                <span>Discount</span>
+                <span className="font-mono text-slate-900">₹ {formatCurrency(discount)}</span>
+              </div>
+              <div className="flex justify-between font-semibold text-slate-700 px-1 text-[11px]">
+                <span>Tax (GST)</span>
+                <span className="font-mono text-slate-900">₹ {formatCurrency(tax)}</span>
+              </div>
+
+              {/* Highlighted Total Banner */}
+              <div className="bg-[#ebdcb9] border border-[#c5b48e] text-slate-900 px-3 py-2 rounded flex justify-between items-center mt-3 shadow-sm select-none">
+                <span className="font-extrabold text-[11px] tracking-wider uppercase">TOTAL AMOUNT</span>
+                <span className="font-mono text-base font-black tracking-tight text-slate-900">
+                  ₹ {formatCurrency(grandTotal)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Thank You, QR Code, Signature */}
+          <div className="flex flex-col justify-between h-full space-y-3">
+            {/* Thank You Message */}
+            <div className="text-center space-y-0.5 select-none">
+              <div className="font-serif italic text-lg font-bold text-slate-800 leading-none">
+                Thank You
+              </div>
+              <div className="font-serif italic text-[11px] text-slate-700">
+                for Shopping with Us!
+              </div>
+              {/* Gold curved brush line SVG */}
+              <svg viewBox="0 0 100 8" className="w-28 h-1.5 mx-auto text-[#d4af37]" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M5,4 Q50,7 95,2" strokeLinecap="round" />
+              </svg>
+              <div className="text-[9px] font-black uppercase text-slate-500 tracking-wider">
+                TRUSTED TODAY.
+              </div>
+              <div className="text-[9px] font-black uppercase text-slate-500 tracking-wider">
+                CONNECTED TOMORROW.
+              </div>
+            </div>
+
+            {/* QR Code and Signature Side-by-Side */}
+            <div className="flex justify-between items-end pt-1">
+              {/* WhatsApp QR */}
+              <div className="flex items-center gap-2">
+                <div className="w-20 h-20 border border-slate-300 p-0.5 bg-white flex justify-center items-center rounded-sm shrink-0">
+                  <img
+                    src="/whatsapp-qr.jpeg"
+                    alt="Scan for WhatsApp"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div className="text-[10px] text-slate-700 font-bold leading-tight flex flex-col justify-center">
+                  <span>Scan for</span>
+                  <span>WhatsApp</span>
+                  <svg viewBox="0 0 24 24" className="w-4 h-4 text-emerald-600 mt-1" fill="currentColor">
+                    <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.333 4.993L2 22l5.13-1.347a9.96 9.96 0 004.88 1.284h.005c5.502 0 9.985-4.478 9.988-9.986 0-2.67-1.035-5.18-2.915-7.06a9.92 9.92 0 00-7.096-2.91zm5.72 14.106c-.315.89-1.545 1.636-2.128 1.745-.583.109-1.127.243-3.725-.83-3.21-1.326-5.247-4.57-5.408-4.786-.16-.215-1.282-1.705-1.282-3.253s.803-2.308 1.094-2.607c.29-.3.638-.372.85-.372.213 0 .426.002.612.01.198.01.465-.075.728.56.262.637.896 2.193.974 2.35.077.158.128.342.025.55-.103.208-.155.337-.308.514-.154.177-.323.396-.462.53-.153.15-.313.313-.134.62.179.306.797 1.31 1.708 2.12.177.157.348.243.553.327.205.084.405.076.557-.097.152-.172.658-.767.834-1.03.176-.26.35-.22.59-.13.24.088 1.52.716 1.785.848.265.132.44.198.505.31.065.112.065.652-.25 1.542z"/>
+                  </svg>
+                </div>
+              </div>
+
+              {/* Owner Signature */}
+              <div className="flex flex-col items-center justify-end">
+                <img
+                  src="/signature.png"
+                  alt="Authorised Signature"
+                  className="w-28 h-12 object-contain mix-blend-multiply"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+                <div className="w-28 h-[1px] bg-slate-350 my-1"></div>
+                <span className="text-[9px] font-bold text-slate-650 uppercase tracking-wider text-center block">
+                  Authorised Signature
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Product Details */}
-        <div className="text-xs">
-          <h3 className="font-extrabold text-slate-900 uppercase tracking-wide mb-2">
-            PRODUCT DETAILS
-          </h3>
-          <table className="w-full text-left border-collapse border border-slate-300">
-            <thead>
-              <tr className="bg-slate-200 text-slate-800 text-[11px] font-black uppercase">
-                <th className="py-2 px-2 border border-slate-300 text-center w-8">#</th>
-                <th className="py-2 px-3 border border-slate-300">ITEM DETAILS</th>
-                <th className="py-2 px-3 border border-slate-300">IMEI NUMBER</th>
-                <th className="py-2 px-2 border border-slate-300 text-center w-12">QTY</th>
-                <th className="py-2 px-3 border border-slate-300 text-right">PRICE (₹)</th>
-                <th className="py-2 px-3 border border-slate-300 text-right">AMOUNT (₹)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="bg-white">
-                <td className="py-3 px-2 border border-slate-300 text-center font-bold text-slate-700 align-middle">
-                  1
-                </td>
-                <td className="py-3 px-3 border border-slate-300 align-middle">
-                  <div className="font-bold text-slate-900 text-sm">{receipt.mobileModel}</div>
-                  {receipt.ramStorage && (
-                    <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-                      {receipt.ramStorage} {receipt.color ? `(${receipt.color})` : ''}
-                    </div>
-                  )}
-                </td>
-                <td className="py-3 px-3 border border-slate-300 font-mono text-[11px] text-slate-700 align-middle space-y-0.5">
-                  {receipt.imei1 && (
-                    <div>
-                      <span className="font-semibold text-slate-900">IMEI 1:</span> {receipt.imei1}
-                    </div>
-                  )}
-                  {appSettings.showImei2 && receipt.imei2 && (
-                    <div>
-                      <span className="font-semibold text-slate-900">IMEI 2:</span> {receipt.imei2}
-                    </div>
-                  )}
-                </td>
-                <td className="py-3 px-2 border border-slate-300 text-center font-bold text-slate-800 align-middle">
-                  {qty}
-                </td>
-                <td className="py-3 px-3 border border-slate-300 text-right font-mono font-semibold text-slate-900 align-middle">
-                  {formatCurrency(unitPrice)}
-                </td>
-                <td className="py-3 px-3 border border-slate-300 text-right font-mono font-bold text-slate-900 align-middle">
-                  {formatCurrency(totalAmount)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Payment Summary */}
-        <div className="text-xs space-y-1.5 border-b border-dashed border-slate-300 pb-3">
-          <h3 className="font-extrabold text-slate-900 uppercase tracking-wide mb-2">
-            PAYMENT SUMMARY
-          </h3>
-          <div className="flex justify-between font-semibold text-slate-700 px-1">
-            <span>Subtotal</span>
-            <span className="font-mono text-slate-900">₹ {formatCurrency(subtotal)}</span>
-          </div>
-          <div className="flex justify-between font-semibold text-slate-700 px-1">
-            <span>Discount</span>
-            <span className="font-mono text-slate-900">₹ {formatCurrency(discount)}</span>
-          </div>
-          <div className="flex justify-between font-semibold text-slate-700 px-1">
-            <span>Tax (GST)</span>
-            <span className="font-mono text-slate-900">₹ {formatCurrency(tax)}</span>
-          </div>
-
-          {/* Highlighted Total Banner */}
-          <div className="bg-[#ebdcb9] border border-[#c5b48e] text-slate-900 px-4 py-2.5 rounded flex justify-between items-center mt-2 shadow-sm">
-            <span className="font-extrabold text-sm tracking-wider uppercase">TOTAL AMOUNT</span>
-            <span className="font-mono text-xl font-black tracking-tight text-slate-900">
-              ₹ {formatCurrency(grandTotal)}
-            </span>
-          </div>
-        </div>
-
         {/* Payment Method Badges */}
-        <div className="text-xs flex items-center justify-between border-b border-dashed border-slate-300 pb-3">
+        <div className="text-xs flex items-center justify-between border-t border-dashed border-slate-300 pt-2 pb-1">
           <span className="font-extrabold text-slate-900 uppercase tracking-wide">
             PAYMENT METHOD :
           </span>
@@ -316,67 +402,49 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
           </div>
         </div>
 
-        {/* Footer: QR Code, Thank You & Signature */}
-        <div className="grid grid-cols-3 gap-4 items-center pt-2">
-          {/* QR Code */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-16 h-16 border border-slate-300 p-1 bg-white flex justify-center items-center rounded-sm shrink-0">
-              <svg viewBox="0 0 100 100" className="w-full h-full">
-                <path d="M0,0 h30 v30 h-30 z M10,10 h10 v10 h-10 z" fill="#000" />
-                <path d="M70,0 h30 v30 h-30 z M80,10 h10 v10 h-10 z" fill="#000" />
-                <path d="M0,70 h30 v30 h-30 z M10,80 h10 v10 h-10 z" fill="#000" />
-                <rect x="40" y="10" width="10" height="20" fill="#000" />
-                <rect x="50" y="30" width="20" height="15" fill="#000" />
-                <rect x="10" y="45" width="15" height="10" fill="#000" />
-                <rect x="75" y="65" width="20" height="20" fill="#000" />
-                <rect x="45" y="65" width="15" height="15" fill="#000" />
-                <rect x="35" y="40" width="10" height="10" fill="#000" />
-              </svg>
-            </div>
-            <div className="text-[10px] text-slate-700 font-bold leading-tight flex flex-col justify-center">
-              <span>Scan for</span>
-              <span>WhatsApp</span>
-              <svg viewBox="0 0 24 24" className="w-4 h-4 text-emerald-600 mt-1" fill="currentColor">
-                <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.333 4.993L2 22l5.13-1.347a9.96 9.96 0 004.88 1.284h.005c5.502 0 9.985-4.478 9.988-9.986 0-2.67-1.035-5.18-2.915-7.06a9.92 9.92 0 00-7.096-2.91zm5.72 14.106c-.315.89-1.545 1.636-2.128 1.745-.583.109-1.127.243-3.725-.83-3.21-1.326-5.247-4.57-5.408-4.786-.16-.215-1.282-1.705-1.282-3.253s.803-2.308 1.094-2.607c.29-.3.638-.372.85-.372.213 0 .426.002.612.01.198.01.465-.075.728.56.262.637.896 2.193.974 2.35.077.158.128.342.025.55-.103.208-.155.337-.308.514-.154.177-.323.396-.462.53-.153.15-.313.313-.134.62.179.306.797 1.31 1.708 2.12.177.157.348.243.553.327.205.084.405.076.557-.097.152-.172.658-.767.834-1.03.176-.26.35-.22.59-.13.24.088 1.52.716 1.785.848.265.132.44.198.505.31.065.112.065.652-.25 1.542z"/>
-              </svg>
-            </div>
+        {/* Terms & Conditions Box */}
+        <div className="border border-slate-300 rounded overflow-hidden">
+          <div className="bg-[#121417] text-[#d4af37] px-3 py-1.5 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5 border-b border-[#121417] select-none">
+            <span>✔</span>
+            <span>📱 सेकंड हैंड मोबाइल - नो रिटर्न, नो गारंटी पॉलिसी</span>
           </div>
-
-          {/* Thank You Message */}
-          <div className="text-center space-y-0.5">
-            <div className="font-serif italic text-lg font-bold text-slate-800 leading-none">
-              Thank You
+          <div className="p-2 px-3 bg-white text-[10px] leading-relaxed text-slate-850 space-y-1 font-medium">
+            <div className="flex gap-1.5">
+              <span className="font-bold text-slate-900">1.</span>
+              <span>यह मोबाइल सेकंड हैंड (Used Mobile) है।</span>
             </div>
-            <div className="font-serif italic text-[11px] text-slate-700">
-              for Shopping with Us!
+            <div className="flex gap-1.5">
+              <span className="font-bold text-slate-900">2.</span>
+              <span>ग्राहक द्वारा मोबाइल की पूरी जांच (Checking) और टेस्टिंग (Testing) खरीदने से पहले की जाती है।</span>
             </div>
-            {/* Gold curved brush line SVG */}
-            <svg viewBox="0 0 100 8" className="w-28 h-1.5 mx-auto text-[#d4af37]" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M5,4 Q50,7 95,2" strokeLinecap="round" />
-            </svg>
-            <div className="text-[9px] font-black uppercase text-slate-500 tracking-wider">
-              TRUSTED TODAY.
+            <div className="flex gap-1.5">
+              <span className="font-bold text-slate-900">3.</span>
+              <span>भविष्य में मोबाइल में आने वाली किसी भी तकनीकी (Technical) या हार्डवेयर (Hardware) समस्या के लिए दुकान ज़िम्मेदार नहीं होगी।</span>
             </div>
-            <div className="text-[9px] font-black uppercase text-slate-500 tracking-wider">
-              CONNECTED TOMORROW.
+            <div className="flex gap-1.5">
+              <span className="font-bold text-slate-900">4.</span>
+              <span>मोबाइल में भविष्य में आने वाली किसी भी प्रकार की समस्या (Problem) की पूरी ज़िम्मेदारी ग्राहक की होगी।</span>
             </div>
-          </div>
-
-          {/* Signature */}
-          <div className="text-center flex flex-col justify-end items-center h-full pt-2">
-            <div className="font-serif italic text-2xl font-bold text-slate-800 mb-0.5 px-6 leading-none select-none" style={{ fontFamily: "'Caveat', 'Dancing Script', 'Brush Script MT', 'Lucida Handwriting', cursive" }}>
-              Jan
+            <div className="flex gap-1.5">
+              <span className="font-bold text-slate-900">5.</span>
+              <span>खरीदने से पहले फोन को अच्छी तरह से जांच लें। खात्री करें कि सभी कार्यशील हो रहा है, जैसे स्क्रीन, कैमरा, स्पीकर, माइक्रोफोन, और वाई-फाई, बैटरी बैकअप - बैटरी की स्थिति: देखें कि बैटरी की खपत असामान्य तो नहीं है। कुछ समय तक फोन का उपयोग करके बैटरी का प्रदर्शन जांचें।</span>
             </div>
-            <div className="w-28 h-[1px] bg-slate-350 my-1"></div>
-            <span className="text-[9px] font-bold text-slate-650 uppercase tracking-wider">
-              Authorised Signature
-            </span>
+            <div className="flex gap-1.5 items-start">
+              <span className="font-bold text-slate-900">6.</span>
+              <div>
+                <span>एक बार मोबाइल खरीदने के बाद –</span>
+                <div className="pl-4 mt-0.5 space-y-0.5 font-semibold text-slate-900">
+                  <div>• कोई रिटर्न (Return) स्वीकार नहीं किया जाएगा।</div>
+                  <div>• कोई वारंटी या गारंटी (Warranty / Guarantee) नहीं दी जाएगी।</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Bottom Footer Banner */}
-      <div className="bg-[#121417] text-white px-4 py-2.5 flex justify-around items-center text-[10px] font-semibold border-t-2 border-[#d4af37]">
+      <div className="bg-[#121417] text-white px-3 py-1.5 flex justify-around items-center text-[9px] font-semibold border-t-2 border-[#d4af37] select-none">
         <div className="flex items-center gap-1.5">
           <span className="text-[#d4af37] text-xs">✔</span>
           <span>100% Genuine Products</span>
@@ -388,9 +456,21 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
         </div>
         <div className="h-3 w-[1px] bg-slate-700"></div>
         <div className="flex items-center gap-1.5">
+          <span className="text-[#d4af37] text-xs">🔄</span>
+          <span>Easy Exchange</span>
+        </div>
+        <div className="h-3 w-[1px] bg-slate-700"></div>
+        <div className="flex items-center gap-1.5">
           <span className="text-[#d4af37] text-xs">👥</span>
           <span>Customer Satisfaction is Our Priority</span>
         </div>
+      </div>
+
+      {/* Gold line + VISIT AGAIN text */}
+      <div className="bg-white border-t border-slate-200 py-1 text-center font-bold text-[10px] text-slate-800 tracking-widest select-none flex items-center justify-center gap-3">
+        <span className="text-[#d4af37]">★★★</span>
+        <span>VISIT AGAIN | THANK YOU!</span>
+        <span className="text-[#d4af37]">★★★</span>
       </div>
     </div>
   );
