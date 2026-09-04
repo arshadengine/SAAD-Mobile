@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ShopSettings, Receipt, AppSettings } from '../../types';
+import { getReceiptItems } from '../../database/receipts';
 
 interface PrintableReceiptProps {
   receipt: Receipt;
@@ -53,10 +54,9 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
     return Number(val || 0).toLocaleString('en-IN');
   };
 
-  const qty = receipt.quantity || 1;
-  const unitPrice = receipt.price;
-  const totalAmount = unitPrice * qty;
-  const subtotal = receipt.subtotal ?? totalAmount;
+  const items = getReceiptItems(receipt);
+  const calculatedSubtotal = items.reduce((sum, it) => sum + (Number(it.price) || 0) * (it.quantity || 1), 0);
+  const subtotal = receipt.subtotal ?? (calculatedSubtotal > 0 ? calculatedSubtotal : Number(receipt.price) || 0);
   const discount = receipt.discount ?? 0;
   const tax = receipt.tax ?? 0;
   const grandTotal = subtotal - discount + tax;
@@ -257,40 +257,48 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
                 </tr>
               </thead>
               <tbody>
-                <tr className="bg-white border border-slate-300 border-t-0">
-                  <td className="py-2 px-2 border-r border-slate-300 text-center font-bold text-slate-700 align-middle">
-                    1
-                  </td>
-                  <td className="py-2 px-3 border-r border-slate-300 align-middle">
-                    <div className="font-bold text-slate-900 text-sm">{receipt.mobileModel}</div>
-                    {receipt.ramStorage && (
-                      <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-                        {receipt.ramStorage} {receipt.color ? `(${receipt.color})` : ''}
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-2 px-3 border-r border-slate-300 font-mono text-[11px] text-slate-700 align-middle space-y-0.5">
-                    {receipt.imei1 && (
-                      <div>
-                        <span className="font-semibold text-slate-900">IMEI 1:</span> {receipt.imei1}
-                      </div>
-                    )}
-                    {appSettings.showImei2 && receipt.imei2 && (
-                      <div>
-                        <span className="font-semibold text-slate-900">IMEI 2:</span> {receipt.imei2}
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-2 px-2 border-r border-slate-300 text-center font-bold text-slate-800 align-middle">
-                    {qty}
-                  </td>
-                  <td className="py-2 px-3 border-r border-slate-300 text-right font-mono font-semibold text-slate-900 align-middle">
-                    {formatCurrency(unitPrice)}
-                  </td>
-                  <td className="py-2 px-3 text-right font-mono font-bold text-slate-900 align-middle">
-                    {formatCurrency(totalAmount)}
-                  </td>
-                </tr>
+                {items.map((item, index) => {
+                  const itemQty = item.quantity || 1;
+                  const itemPrice = Number(item.price) || 0;
+                  const itemTotal = itemPrice * itemQty;
+
+                  return (
+                    <tr key={item.id || index} className="bg-white border border-slate-300 border-t-0">
+                      <td className="py-2 px-2 border-r border-slate-300 text-center font-bold text-slate-700 align-middle">
+                        {index + 1}
+                      </td>
+                      <td className="py-2 px-3 border-r border-slate-300 align-middle">
+                        <div className="font-bold text-slate-900 text-sm">{item.mobileModel}</div>
+                        {item.ramStorage && (
+                          <div className="text-[11px] text-slate-500 font-medium mt-0.5">
+                            {item.ramStorage} {item.color ? `(${item.color})` : ''}
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-2 px-3 border-r border-slate-300 font-mono text-[11px] text-slate-700 align-middle space-y-0.5">
+                        {item.imei1 && (
+                          <div>
+                            <span className="font-semibold text-slate-900">IMEI 1:</span> {item.imei1}
+                          </div>
+                        )}
+                        {appSettings.showImei2 && item.imei2 && (
+                          <div>
+                            <span className="font-semibold text-slate-900">IMEI 2:</span> {item.imei2}
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-2 px-2 border-r border-slate-300 text-center font-bold text-slate-800 align-middle">
+                        {itemQty}
+                      </td>
+                      <td className="py-2 px-3 border-r border-slate-300 text-right font-mono font-semibold text-slate-900 align-middle">
+                        {formatCurrency(itemPrice)}
+                      </td>
+                      <td className="py-2 px-3 text-right font-mono font-bold text-slate-900 align-middle">
+                        {formatCurrency(itemTotal)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

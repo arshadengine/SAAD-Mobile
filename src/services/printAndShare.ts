@@ -32,13 +32,19 @@ export async function generateReceiptPDF(receipt: Receipt): Promise<void> {
 }
 
 export async function shareReceipt(receipt: Receipt): Promise<boolean> {
+  const itemsList = receipt.items && receipt.items.length > 0
+    ? receipt.items.map((it, idx) => `${idx + 1}. ${it.mobileModel} (IMEI: ${it.imei1}) - ₹${Number(it.price).toLocaleString('en-IN')}`).join('\n')
+    : `Item: ${receipt.mobileModel}\nIMEI: ${receipt.imei1}`;
+
   const textContent = `
 SAAD MOBILE - RECEIPT
 Bill No: ${receipt.billNumber}
 Date: ${receipt.date} ${receipt.time}
 Customer: ${receipt.customerName}
-Item: ${receipt.mobileModel}
-IMEI: ${receipt.imei1}
+
+Items:
+${itemsList}
+
 Total: ₹${Number(receipt.price).toLocaleString('en-IN')}
 
 Thank you for shopping with SAAD Mobile!

@@ -1,5 +1,23 @@
 import { db } from './db';
-import type { Receipt, AppSettings } from '../types';
+import type { Receipt, AppSettings, ReceiptItem } from '../types';
+
+export function getReceiptItems(receipt: Receipt): ReceiptItem[] {
+  if (receipt.items && receipt.items.length > 0) {
+    return receipt.items;
+  }
+  return [
+    {
+      id: 'item-1',
+      mobileModel: receipt.mobileModel || '',
+      ramStorage: receipt.ramStorage,
+      color: receipt.color,
+      imei1: receipt.imei1 || '',
+      imei2: receipt.imei2,
+      quantity: receipt.quantity || 1,
+      price: receipt.price || 0
+    }
+  ];
+}
 
 export async function getNextBillNumber(): Promise<{ billNumber: string; sequence: number }> {
   const settings = await db.appSettings.toCollection().first();
@@ -20,8 +38,24 @@ export async function createReceipt(receiptData: Omit<Receipt, 'id' | 'billNumbe
   const billNumber = `${prefix}${formattedSeq}`;
   const timestamp = Date.now();
 
+  // If multiple items are provided, populate primary fields for backward compatibility/indexing
+  const items = receiptData.items && receiptData.items.length > 0 ? receiptData.items : undefined;
+  const firstItem = items?.[0];
+
+  const primaryMobileModel = receiptData.mobileModel || firstItem?.mobileModel || '';
+  const primaryImei1 = receiptData.imei1 || firstItem?.imei1 || '';
+  const primaryImei2 = receiptData.imei2 || firstItem?.imei2;
+  const primaryRamStorage = receiptData.ramStorage || firstItem?.ramStorage;
+  const primaryColor = receiptData.color || firstItem?.color;
+
   const newReceipt: Receipt = {
     ...receiptData,
+    mobileModel: primaryMobileModel,
+    imei1: primaryImei1,
+    imei2: primaryImei2,
+    ramStorage: primaryRamStorage,
+    color: primaryColor,
+    items,
     billNumber,
     timestamp
   };
@@ -54,14 +88,29 @@ export async function searchReceipts(query: string): Promise<Receipt[]> {
   const q = query.toLowerCase().trim();
   if (!q) return await getAllReceipts();
 
-  return await db.receipts.filter(r => 
-    r.billNumber.toLowerCase().includes(q) ||
-    r.customerName.toLowerCase().includes(q) ||
-    (r.customerPhone && r.customerPhone.includes(q)) ||
-    r.mobileModel.toLowerCase().includes(q) ||
-    r.imei1.includes(q) ||
-    (r.imei2 && r.imei2.includes(q))
-  ).reverse().toArray();
+  return await db.receipts.filter(r => {
+    const directMatch =
+      r.billNumber.toLowerCase().includes(q) ||
+      r.customerName.toLowerCase().includes(q) ||
+      (r.customerPhone && r.customerPhone.includes(q)) ||
+      (r.mobileModel && r.mobileModel.toLowerCase().includes(q)) ||
+      (r.imei1 && r.imei1.includes(q)) ||
+      (r.imei2 && r.imei2.includes(q));
+
+    if (directMatch) return true;
+
+    if (r.items && r.items.length > 0) {
+      return r.items.some(it =>
+        it.mobileModel.toLowerCase().includes(q) ||
+        it.imei1.includes(q) ||
+        (it.imei2 && it.imei2.includes(q)) ||
+        (it.ramStorage && it.ramStorage.toLowerCase().includes(q)) ||
+        (it.color && it.color.toLowerCase().includes(q))
+      );
+    }
+
+    return false;
+  }).reverse().toArray();
 }
 
 export async function getDashboardStats() {

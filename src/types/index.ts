@@ -11,6 +11,17 @@ export interface ShopSettings {
   termsAndConditions: string[];
 }
 
+export interface ReceiptItem {
+  id?: string;
+  mobileModel: string;
+  ramStorage?: string;
+  color?: string;
+  imei1: string;
+  imei2?: string;
+  quantity: number;
+  price: number;
+}
+
 export interface Receipt {
   id?: number;
   billNumber: string; // e.g. SM-000001
@@ -23,11 +34,14 @@ export interface Receipt {
   customerPhone?: string;
   customerAddress?: string;
 
-  // Mobile / Product Info
-  mobileModel: string;
+  // Multi-item Support
+  items?: ReceiptItem[];
+
+  // Mobile / Product Info (Legacy & Fallback for backward compatibility)
+  mobileModel?: string;
   ramStorage?: string;
   color?: string;
-  imei1: string;
+  imei1?: string;
   imei2?: string;
   quantity?: number;
   price: number;

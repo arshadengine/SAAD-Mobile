@@ -182,14 +182,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     {receipt.billNumber.replace('SM-', '')}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 text-sm">{receipt.mobileModel}</span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-slate-900 text-sm">
+                        {receipt.items && receipt.items.length > 0 ? receipt.items[0].mobileModel : receipt.mobileModel}
+                      </span>
+                      {receipt.items && receipt.items.length > 1 && (
+                        <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                          +{receipt.items.length - 1} more
+                        </span>
+                      )}
                       <span className="font-mono text-[11px] text-indigo-600 font-semibold">{receipt.billNumber}</span>
                     </div>
                     <div className="text-xs text-slate-550 mt-0.5 flex flex-wrap items-center gap-x-2">
                       <span>{receipt.customerName}</span>
                       <span>•</span>
-                      <span className="font-mono text-[11px]">IMEI: {receipt.imei1}</span>
+                      <span className="font-mono text-[11px]">
+                        IMEI: {receipt.items && receipt.items.length > 0 ? receipt.items[0].imei1 : receipt.imei1}
+                        {receipt.items && receipt.items.length > 1 && ` (+${receipt.items.length - 1})`}
+                      </span>
                       <span>•</span>
                       <span>{receipt.date}</span>
                     </div>

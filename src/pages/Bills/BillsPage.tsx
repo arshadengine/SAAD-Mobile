@@ -106,17 +106,31 @@ export const BillsPage: React.FC<BillsPageProps> = ({ shopSettings, appSettings 
                       )}
                     </td>
                     <td className="py-3 px-3 font-semibold text-slate-800 text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <Smartphone className="w-3.5 h-3.5 text-indigo-500" />
-                        {receipt.mobileModel}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                          <Smartphone className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                          <span>{receipt.items && receipt.items.length > 0 ? receipt.items[0].mobileModel : receipt.mobileModel}</span>
+                        </div>
+                        {receipt.items && receipt.items.length > 1 && (
+                          <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
+                            +{receipt.items.length - 1} more
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="py-3 px-3 font-mono text-xs text-slate-600">
                       <div className="flex items-center gap-1">
                         <Hash className="w-3 h-3 text-slate-400" />
-                        {receipt.imei1}
+                        {receipt.items && receipt.items.length > 0 ? receipt.items[0].imei1 : receipt.imei1}
                       </div>
-                      {receipt.imei2 && <div className="text-[10px] text-slate-450">IMEI 2: {receipt.imei2}</div>}
+                      {receipt.items && receipt.items.length > 1 && (
+                        <div className="text-[10px] text-indigo-600 font-sans font-semibold mt-0.5">
+                          {receipt.items.length} IMEIs on bill
+                        </div>
+                      )}
+                      {(!receipt.items || receipt.items.length <= 1) && receipt.imei2 && (
+                        <div className="text-[10px] text-slate-450">IMEI 2: {receipt.imei2}</div>
+                      )}
                     </td>
                     <td className="py-3 px-3 font-mono font-bold text-indigo-700 text-right text-sm">
                       ₹ {Number(receipt.price).toLocaleString('en-IN')}
