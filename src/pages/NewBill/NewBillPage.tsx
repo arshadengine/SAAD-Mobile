@@ -16,7 +16,9 @@ import {
   RefreshCw,
   PlusCircle,
   Trash2,
-  Calculator
+  Calculator,
+  Headphones,
+  ShieldCheck
 } from 'lucide-react';
 
 interface NewBillPageProps {
@@ -32,20 +34,58 @@ interface MobileItemInput {
   color: string;
   imei1: string;
   imei2: string;
+  warranty: string;
   price: string;
   quantity: number;
 }
 
-const createEmptyItem = (): MobileItemInput => ({
+interface AccessoryItemInput {
+  id: string;
+  name: string;
+  color: string;
+  warranty: string;
+  price: string;
+  quantity: number;
+}
+
+const createEmptyMobile = (): MobileItemInput => ({
   id: Math.random().toString(36).substring(2, 9),
   mobileModel: '',
   ramStorage: '',
   color: '',
   imei1: '',
   imei2: '',
+  warranty: '',
   price: '',
   quantity: 1
 });
+
+const createEmptyAccessory = (defaultName = '', defaultWarranty = '6 Months'): AccessoryItemInput => ({
+  id: Math.random().toString(36).substring(2, 9),
+  name: defaultName,
+  color: '',
+  warranty: defaultWarranty,
+  price: '',
+  quantity: 1
+});
+
+const ACCESSORY_SUGGESTIONS = [
+  'Fast Charger',
+  'Earphones / Buds',
+  'Tempered Glass',
+  'Back Cover',
+  'Type-C Cable',
+  'Power Bank',
+  'Smartwatch'
+];
+
+const WARRANTY_PRESETS = [
+  'No Warranty',
+  '1 Month',
+  '3 Months',
+  '6 Months',
+  '1 Year'
+];
 
 export const NewBillPage: React.FC<NewBillPageProps> = ({
   shopSettings,
@@ -57,7 +97,8 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
   const [customerPhone, setCustomerPhone] = useState<string>('');
   const [customerAddress, setCustomerAddress] = useState<string>('');
 
-  const [items, setItems] = useState<MobileItemInput[]>([createEmptyItem()]);
+  const [mobiles, setMobiles] = useState<MobileItemInput[]>([createEmptyMobile()]);
+  const [accessories, setAccessories] = useState<AccessoryItemInput[]>([]);
 
   const [salesType, setSalesType] = useState<string>('Retail');
   const [paymentMethod, setPaymentMethod] = useState<string>('Cash');
@@ -89,17 +130,24 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
     setBillNumber(next.billNumber);
   };
 
-  const handleAddItem = () => {
-    setItems((prev) => [...prev, createEmptyItem()]);
+  // Mobile Handlers
+  const handleAddMobile = () => {
+    setMobiles((prev) => [...prev, createEmptyMobile()]);
+    if (errors.general) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.general;
+        return next;
+      });
+    }
   };
 
-  const handleRemoveItem = (index: number) => {
-    if (items.length <= 1) return;
-    setItems((prev) => prev.filter((_, i) => i !== index));
+  const handleRemoveMobile = (index: number) => {
+    setMobiles((prev) => prev.filter((_, i) => i !== index));
     setErrors((prev) => {
       const next = { ...prev };
       Object.keys(next).forEach((k) => {
-        if (k.startsWith(`item_${index}_`)) {
+        if (k.startsWith(`mobile_${index}_`)) {
           delete next[k];
         }
       });
@@ -107,13 +155,13 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
     });
   };
 
-  const handleUpdateItem = (index: number, field: keyof MobileItemInput, value: string | number) => {
-    setItems((prev) => {
+  const handleUpdateMobile = (index: number, field: keyof MobileItemInput, value: string | number) => {
+    setMobiles((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
       return updated;
     });
-    const errorKey = `item_${index}_${field}`;
+    const errorKey = `mobile_${index}_${field}`;
     if (errors[errorKey]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -123,11 +171,57 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
     }
   };
 
-  // Subtotal & Grand Total
-  const subtotal = items.reduce((sum, it) => sum + (Number(it.price) || 0) * (it.quantity || 1), 0);
+  // Accessory Handlers
+  const handleAddAccessory = (presetName = '') => {
+    setAccessories((prev) => [...prev, createEmptyAccessory(presetName, '6 Months')]);
+    if (errors.general) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.general;
+        return next;
+      });
+    }
+  };
+
+  const handleRemoveAccessory = (index: number) => {
+    setAccessories((prev) => prev.filter((_, i) => i !== index));
+    setErrors((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((k) => {
+        if (k.startsWith(`accessory_${index}_`)) {
+          delete next[k];
+        }
+      });
+      return next;
+    });
+  };
+
+  const handleUpdateAccessory = (index: number, field: keyof AccessoryItemInput, value: string | number) => {
+    setAccessories((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+    const errorKey = `accessory_${index}_${field}`;
+    if (errors[errorKey]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[errorKey];
+        return next;
+      });
+    }
+  };
+
+  // Totals Calculation
+  const mobilesSubtotal = mobiles.reduce((sum, it) => sum + (Number(it.price) || 0) * (it.quantity || 1), 0);
+  const accessoriesSubtotal = accessories.reduce((sum, it) => sum + (Number(it.price) || 0) * (it.quantity || 1), 0);
+  const subtotal = mobilesSubtotal + accessoriesSubtotal;
   const discountVal = Number(discount) || 0;
   const taxVal = Number(tax) || 0;
   const grandTotal = Math.max(0, subtotal - discountVal + taxVal);
+  const totalItemsCount =
+    mobiles.reduce((s, it) => s + (it.quantity || 1), 0) +
+    accessories.reduce((s, it) => s + (it.quantity || 1), 0);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -140,8 +234,12 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
       newErrors.customerPhone = 'Enter valid 10-digit Indian mobile number';
     }
 
-    items.forEach((item, index) => {
-      const prefix = `item_${index}_`;
+    if (mobiles.length === 0 && accessories.length === 0) {
+      newErrors.general = 'Please add at least one mobile device or accessory to generate a bill.';
+    }
+
+    mobiles.forEach((item, index) => {
+      const prefix = `mobile_${index}_`;
       if (!item.mobileModel.trim()) {
         newErrors[`${prefix}mobileModel`] = `Mobile #${index + 1} model is required`;
       }
@@ -161,6 +259,17 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
       }
     });
 
+    accessories.forEach((item, index) => {
+      const prefix = `accessory_${index}_`;
+      if (!item.name.trim()) {
+        newErrors[`${prefix}name`] = `Accessory #${index + 1} description is required`;
+      }
+
+      if (!item.price || isNaN(Number(item.price)) || Number(item.price) <= 0) {
+        newErrors[`${prefix}price`] = `Valid price is required`;
+      }
+    });
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -171,26 +280,42 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
 
     setIsSubmitting(true);
     try {
-      const receiptItems: ReceiptItem[] = items.map((it) => ({
-        id: it.id,
-        mobileModel: it.mobileModel.trim(),
-        ramStorage: it.ramStorage.trim() || undefined,
-        color: it.color.trim() || undefined,
-        imei1: it.imei1.trim(),
-        imei2: it.imei2.trim() || undefined,
-        quantity: it.quantity || 1,
-        price: Number(it.price)
-      }));
+      const receiptItems: ReceiptItem[] = [
+        ...mobiles.map((it) => ({
+          id: it.id,
+          itemType: 'mobile' as const,
+          mobileModel: it.mobileModel.trim(),
+          ramStorage: it.ramStorage.trim() || undefined,
+          color: it.color.trim() || undefined,
+          imei1: it.imei1.trim(),
+          imei2: it.imei2.trim() || undefined,
+          warranty: it.warranty.trim() || undefined,
+          quantity: it.quantity || 1,
+          price: Number(it.price)
+        })),
+        ...accessories.map((it) => ({
+          id: it.id,
+          itemType: 'accessory' as const,
+          mobileModel: it.name.trim(),
+          color: it.color.trim() || undefined,
+          warranty: it.warranty.trim() || 'No Warranty',
+          quantity: it.quantity || 1,
+          price: Number(it.price)
+        }))
+      ];
+
+      const firstMobile = receiptItems.find((it) => it.itemType === 'mobile');
+      const firstItem = firstMobile || receiptItems[0];
 
       const receiptData = {
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim() || undefined,
         customerAddress: customerAddress.trim() || undefined,
-        mobileModel: receiptItems[0].mobileModel,
-        ramStorage: receiptItems[0].ramStorage,
-        color: receiptItems[0].color,
-        imei1: receiptItems[0].imei1,
-        imei2: receiptItems[0].imei2,
+        mobileModel: firstItem?.mobileModel || '',
+        ramStorage: firstItem?.ramStorage,
+        color: firstItem?.color,
+        imei1: firstItem?.imei1 || '',
+        imei2: firstItem?.imei2,
         price: grandTotal,
         subtotal: subtotal,
         discount: discountVal,
@@ -216,7 +341,8 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
     setCustomerName('');
     setCustomerPhone('');
     setCustomerAddress('');
-    setItems([createEmptyItem()]);
+    setMobiles([createEmptyMobile()]);
+    setAccessories([]);
     setDiscount('0');
     setTax('0');
     setSalesType('Retail');
@@ -226,7 +352,31 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
     fetchNextBillNum();
   };
 
-  // Draft receipt for real-time live preview
+  // Draft items for real-time live receipt preview
+  const draftReceiptItems: ReceiptItem[] = [
+    ...mobiles.map((it, idx) => ({
+      id: it.id,
+      itemType: 'mobile' as const,
+      mobileModel: it.mobileModel || `Mobile Device #${idx + 1}`,
+      ramStorage: it.ramStorage || undefined,
+      color: it.color || undefined,
+      imei1: it.imei1 || '123456789012345',
+      imei2: it.imei2 || undefined,
+      warranty: it.warranty || undefined,
+      quantity: it.quantity || 1,
+      price: Number(it.price) || 0
+    })),
+    ...accessories.map((it, idx) => ({
+      id: it.id,
+      itemType: 'accessory' as const,
+      mobileModel: it.name || `Accessory #${idx + 1}`,
+      color: it.color || undefined,
+      warranty: it.warranty || '6 Months',
+      quantity: it.quantity || 1,
+      price: Number(it.price) || 0
+    }))
+  ];
+
   const draftReceipt: Receipt = {
     billNumber,
     date: dateStr,
@@ -235,27 +385,27 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
     customerName: customerName || 'Customer Name',
     customerPhone: customerPhone || undefined,
     customerAddress: customerAddress || undefined,
-    mobileModel: items[0]?.mobileModel || 'Mobile Model Name',
-    ramStorage: items[0]?.ramStorage || undefined,
-    color: items[0]?.color || undefined,
-    imei1: items[0]?.imei1 || '123456789012345',
-    imei2: items[0]?.imei2 || undefined,
+    mobileModel: draftReceiptItems[0]?.mobileModel || 'Mobile Model Name',
+    ramStorage: draftReceiptItems[0]?.ramStorage || undefined,
+    color: draftReceiptItems[0]?.color || undefined,
+    imei1: draftReceiptItems[0]?.imei1 || '',
+    imei2: draftReceiptItems[0]?.imei2 || undefined,
     price: grandTotal,
     subtotal: subtotal,
     discount: discountVal,
     tax: taxVal,
     salesType,
     paymentMethod,
-    items: items.map((it, idx) => ({
-      id: it.id,
-      mobileModel: it.mobileModel || `Mobile Model #${idx + 1}`,
-      ramStorage: it.ramStorage || undefined,
-      color: it.color || undefined,
-      imei1: it.imei1 || '123456789012345',
-      imei2: it.imei2 || undefined,
-      quantity: it.quantity || 1,
-      price: Number(it.price) || 0
-    }))
+    items: draftReceiptItems.length > 0 ? draftReceiptItems : [
+      {
+        id: 'default',
+        itemType: 'mobile',
+        mobileModel: 'Mobile Model Name',
+        imei1: '123456789012345',
+        quantity: 1,
+        price: 0
+      }
+    ]
   };
 
   const currentDisplayReceipt = createdReceipt || draftReceipt;
@@ -271,7 +421,7 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
                 <Smartphone className="w-5 h-5 text-indigo-600" />
                 New Bill Entry
               </h2>
-              <p className="text-xs text-slate-500">Fill in details to generate instant receipt</p>
+              <p className="text-xs text-slate-500">Mobiles, accessories & warranty period</p>
             </div>
 
             <div className="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg text-right">
@@ -288,7 +438,7 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
               <div>
                 <h3 className="font-bold text-slate-900 text-lg">Receipt Generated Successfully!</h3>
                 <p className="text-slate-700 text-xs mt-1">
-                  Bill <span className="font-mono font-bold text-indigo-700">{createdReceipt.billNumber}</span> ({items.length} {items.length === 1 ? 'mobile' : 'mobiles'}) has been saved to local database.
+                  Bill <span className="font-mono font-bold text-indigo-700">{createdReceipt.billNumber}</span> ({totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}) has been saved to local database.
                 </p>
               </div>
 
@@ -326,6 +476,13 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
             </div>
           ) : (
             <form onSubmit={handleCreateReceipt} className="space-y-5">
+              {errors.general && (
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errors.general}</span>
+                </div>
+              )}
+
               {/* Customer Section */}
               <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <h3 className="text-xs uppercase font-bold tracking-wider text-indigo-600 flex items-center gap-1.5">
@@ -380,149 +537,333 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
                 </div>
               </div>
 
-              {/* Mobile Products Section */}
+              {/* Mobile Devices Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs uppercase font-bold tracking-wider text-indigo-600 flex items-center gap-1.5">
                     <Smartphone className="w-3.5 h-3.5" />
-                    Mobile Devices / Items ({items.length})
+                    Mobile Devices ({mobiles.length})
                   </h3>
-                  <span className="text-[11px] text-slate-500 font-medium">
-                    Add 1 or more mobiles to single bill
-                  </span>
+                  {mobiles.length > 0 && (
+                    <span className="text-[11px] text-slate-500 font-medium">
+                      Phones with 15-digit IMEI
+                    </span>
+                  )}
                 </div>
 
-                {items.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200 relative transition-all shadow-xs"
-                  >
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-black flex items-center justify-center">
-                          {index + 1}
-                        </span>
-                        <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-                          Mobile #{index + 1}
-                        </span>
-                        {items.length > 1 && item.mobileModel && (
-                          <span className="text-[11px] text-slate-500 font-semibold truncate max-w-[150px]">
-                            ({item.mobileModel})
+                {mobiles.length === 0 ? (
+                  <div className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4 text-center">
+                    <p className="text-xs text-slate-500 font-medium">No mobile phone added to this bill.</p>
+                    <button
+                      type="button"
+                      onClick={handleAddMobile}
+                      className="mt-2 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-indigo-600 font-bold rounded-lg text-xs inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      <span>+ Add Mobile Phone</span>
+                    </button>
+                  </div>
+                ) : (
+                  mobiles.map((item, index) => (
+                    <div
+                      key={item.id}
+                      className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200 relative transition-all shadow-xs"
+                    >
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-black flex items-center justify-center">
+                            {index + 1}
                           </span>
-                        )}
-                      </div>
+                          <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                            Mobile #{index + 1}
+                          </span>
+                          {item.mobileModel && (
+                            <span className="text-[11px] text-slate-500 font-semibold truncate max-w-[150px]">
+                              ({item.mobileModel})
+                            </span>
+                          )}
+                        </div>
 
-                      {items.length > 1 && (
                         <button
                           type="button"
-                          onClick={() => handleRemoveItem(index)}
+                          onClick={() => handleRemoveMobile(index)}
                           className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                           title="Remove this mobile"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span>Remove</span>
                         </button>
-                      )}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Mobile Model <span className="text-rose-600">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Samsung Galaxy S25 / iPhone 15"
+                          value={item.mobileModel}
+                          onChange={(e) => handleUpdateMobile(index, 'mobileModel', e.target.value)}
+                          className={`w-full bg-white border ${
+                            errors[`mobile_${index}_mobileModel`] ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-300 focus:border-indigo-650'
+                          } rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600`}
+                        />
+                        {errors[`mobile_${index}_mobileModel`] && (
+                          <p className="text-rose-600 text-[11px] mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {errors[`mobile_${index}_mobileModel`]}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            RAM & Storage <span className="text-slate-400 font-normal">(Optional)</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 8GB / 256GB"
+                            value={item.ramStorage}
+                            onChange={(e) => handleUpdateMobile(index, 'ramStorage', e.target.value)}
+                            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-650 focus:ring-1 focus:ring-indigo-600"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Color <span className="text-slate-400 font-normal">(Optional)</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Phantom Black"
+                            value={item.color}
+                            onChange={(e) => handleUpdateMobile(index, 'color', e.target.value)}
+                            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-650 focus:ring-1 focus:ring-indigo-600"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            IMEI Number 1 <span className="text-rose-600">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              placeholder="15 digits IMEI"
+                              maxLength={15}
+                              value={item.imei1}
+                              onChange={(e) => handleUpdateMobile(index, 'imei1', e.target.value.replace(/\D/g, ''))}
+                              className={`w-full bg-white border ${
+                                errors[`mobile_${index}_imei1`] ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-300 focus:border-indigo-650'
+                              } rounded-lg px-3 py-2 text-sm text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-600`}
+                            />
+                            <Hash className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3" />
+                          </div>
+                          {errors[`mobile_${index}_imei1`] && (
+                            <p className="text-rose-600 text-[11px] mt-1 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {errors[`mobile_${index}_imei1`]}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            IMEI Number 2 <span className="text-slate-400 font-normal">(Optional)</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              placeholder="15 digits IMEI"
+                              maxLength={15}
+                              value={item.imei2}
+                              onChange={(e) => handleUpdateMobile(index, 'imei2', e.target.value.replace(/\D/g, ''))}
+                              className={`w-full bg-white border ${
+                                errors[`mobile_${index}_imei2`] ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-300 focus:border-indigo-650'
+                              } rounded-lg px-3 py-2 text-sm text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-600`}
+                            />
+                            <Hash className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3" />
+                          </div>
+                          {errors[`mobile_${index}_imei2`] && (
+                            <p className="text-rose-600 text-[11px] mt-1 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {errors[`mobile_${index}_imei2`]}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Price (₹) <span className="text-rose-600">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              placeholder="e.g. 72999"
+                              value={item.price}
+                              onChange={(e) => handleUpdateMobile(index, 'price', e.target.value)}
+                              className={`w-full bg-white border ${
+                                errors[`mobile_${index}_price`] ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-300 focus:border-indigo-650'
+                              } rounded-lg pl-8 pr-3 py-2 text-sm font-bold text-indigo-700 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-600`}
+                            />
+                            <IndianRupee className="w-4 h-4 text-indigo-650 absolute left-2.5 top-2.5" />
+                          </div>
+                          {errors[`mobile_${index}_price`] && (
+                            <p className="text-rose-600 text-[11px] mt-1 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              {errors[`mobile_${index}_price`]}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Quantity
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            value={item.quantity}
+                            onChange={(e) => handleUpdateMobile(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-center font-bold text-slate-900 focus:outline-none focus:border-indigo-650 focus:ring-1 focus:ring-indigo-600"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+
+                {/* Add Another Mobile Button */}
+                <button
+                  type="button"
+                  onClick={handleAddMobile}
+                  className="w-full py-2.5 border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 text-indigo-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>+ ADD ANOTHER MOBILE PHONE</span>
+                </button>
+              </div>
+
+              {/* Accessories & Warranty Section */}
+              <div className="space-y-4 pt-2 border-t border-slate-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs uppercase font-bold tracking-wider text-amber-700 flex items-center gap-1.5">
+                    <Headphones className="w-3.5 h-3.5 text-amber-600" />
+                    Accessories & Warranty ({accessories.length})
+                  </h3>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Charger, Earphones, Cover, Glass, etc.
+                  </span>
+                </div>
+
+                {accessories.map((acc, index) => (
+                  <div
+                    key={acc.id}
+                    className="space-y-3 bg-amber-50/60 p-4 rounded-xl border border-amber-200 relative transition-all shadow-xs"
+                  >
+                    <div className="flex items-center justify-between pb-2 border-b border-amber-200/80">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-amber-600 text-white text-[10px] font-black flex items-center justify-center">
+                          {index + 1}
+                        </span>
+                        <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                          Accessory #{index + 1}
+                        </span>
+                        {acc.name && (
+                          <span className="text-[11px] text-amber-900 font-semibold truncate max-w-[160px]">
+                            ({acc.name})
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAccessory(index)}
+                        className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                        title="Remove this accessory"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Remove</span>
+                      </button>
+                    </div>
+
+                    {/* Quick Suggestion Chips */}
+                    <div>
+                      <span className="block text-[10.5px] font-bold text-slate-600 mb-1">
+                        Quick Item Presets:
+                      </span>
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {ACCESSORY_SUGGESTIONS.map((sugg) => (
+                          <button
+                            key={sugg}
+                            type="button"
+                            onClick={() => handleUpdateAccessory(index, 'name', sugg)}
+                            className={`px-2 py-0.5 rounded text-[10.5px] font-medium border transition-colors cursor-pointer ${
+                              acc.name === sugg
+                                ? 'bg-amber-600 text-white border-amber-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-amber-100 hover:border-amber-400'
+                            }`}
+                          >
+                            {sugg}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Mobile Model <span className="text-rose-600">*</span>
+                        Accessory Description <span className="text-rose-600">*</span>
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. Samsung Galaxy S25 / iPhone 15"
-                        value={item.mobileModel}
-                        onChange={(e) => handleUpdateItem(index, 'mobileModel', e.target.value)}
+                        placeholder="e.g. 67W SuperVOOC Charger / Boat Airdopes 141"
+                        value={acc.name}
+                        onChange={(e) => handleUpdateAccessory(index, 'name', e.target.value)}
                         className={`w-full bg-white border ${
-                          errors[`item_${index}_mobileModel`] ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-300 focus:border-indigo-650'
+                          errors[`accessory_${index}_name`] ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-300 focus:border-indigo-650'
                         } rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600`}
                       />
-                      {errors[`item_${index}_mobileModel`] && (
+                      {errors[`accessory_${index}_name`] && (
                         <p className="text-rose-600 text-[11px] mt-1 flex items-center gap-1">
                           <AlertCircle className="w-3 h-3" />
-                          {errors[`item_${index}_mobileModel`]}
+                          {errors[`accessory_${index}_name`]}
                         </p>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          RAM & Storage <span className="text-slate-400 font-normal">(Optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. 8GB / 256GB"
-                          value={item.ramStorage}
-                          onChange={(e) => handleUpdateItem(index, 'ramStorage', e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-650 focus:ring-1 focus:ring-indigo-600"
-                        />
+                    {/* Warranty Selection */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                        Warranty Period
+                      </label>
+                      <div className="flex flex-wrap gap-1.5 mb-1.5">
+                        {WARRANTY_PRESETS.map((w) => (
+                          <button
+                            key={w}
+                            type="button"
+                            onClick={() => handleUpdateAccessory(index, 'warranty', w)}
+                            className={`px-2.5 py-1 rounded text-xs font-bold border transition-colors cursor-pointer ${
+                              acc.warranty === w
+                                ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-amber-100 hover:border-amber-400'
+                            }`}
+                          >
+                            {w === 'No Warranty' ? '❌ No Warranty' : `🛡️ ${w}`}
+                          </button>
+                        ))}
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          Color <span className="text-slate-400 font-normal">(Optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Phantom Black"
-                          value={item.color}
-                          onChange={(e) => handleUpdateItem(index, 'color', e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-650 focus:ring-1 focus:ring-indigo-600"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          IMEI Number 1 <span className="text-rose-600">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            placeholder="15 digits IMEI"
-                            maxLength={15}
-                            value={item.imei1}
-                            onChange={(e) => handleUpdateItem(index, 'imei1', e.target.value.replace(/\D/g, ''))}
-                            className={`w-full bg-white border ${
-                              errors[`item_${index}_imei1`] ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-300 focus:border-indigo-650'
-                            } rounded-lg px-3 py-2 text-sm text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-600`}
-                          />
-                          <Hash className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3" />
-                        </div>
-                        {errors[`item_${index}_imei1`] && (
-                          <p className="text-rose-600 text-[11px] mt-1 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3" />
-                            {errors[`item_${index}_imei1`]}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          IMEI Number 2 <span className="text-slate-400 font-normal">(Optional)</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            placeholder="15 digits IMEI"
-                            maxLength={15}
-                            value={item.imei2}
-                            onChange={(e) => handleUpdateItem(index, 'imei2', e.target.value.replace(/\D/g, ''))}
-                            className={`w-full bg-white border ${
-                              errors[`item_${index}_imei2`] ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-300 focus:border-indigo-650'
-                            } rounded-lg px-3 py-2 text-sm text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-600`}
-                          />
-                          <Hash className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-3" />
-                        </div>
-                        {errors[`item_${index}_imei2`] && (
-                          <p className="text-rose-600 text-[11px] mt-1 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3" />
-                            {errors[`item_${index}_imei2`]}
-                          </p>
-                        )}
-                      </div>
+                      <input
+                        type="text"
+                        placeholder="Or custom warranty, e.g. 18 Months Brand Warranty / 7 Days Replacement"
+                        value={acc.warranty}
+                        onChange={(e) => handleUpdateAccessory(index, 'warranty', e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-indigo-650 focus:ring-1 focus:ring-indigo-600"
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
@@ -533,19 +874,19 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
                         <div className="relative">
                           <input
                             type="number"
-                            placeholder="e.g. 72999"
-                            value={item.price}
-                            onChange={(e) => handleUpdateItem(index, 'price', e.target.value)}
+                            placeholder="e.g. 999"
+                            value={acc.price}
+                            onChange={(e) => handleUpdateAccessory(index, 'price', e.target.value)}
                             className={`w-full bg-white border ${
-                              errors[`item_${index}_price`] ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-300 focus:border-indigo-650'
+                              errors[`accessory_${index}_price`] ? 'border-rose-500 focus:ring-rose-500' : 'border-slate-300 focus:border-indigo-650'
                             } rounded-lg pl-8 pr-3 py-2 text-sm font-bold text-indigo-700 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-600`}
                           />
                           <IndianRupee className="w-4 h-4 text-indigo-650 absolute left-2.5 top-2.5" />
                         </div>
-                        {errors[`item_${index}_price`] && (
+                        {errors[`accessory_${index}_price`] && (
                           <p className="text-rose-600 text-[11px] mt-1 flex items-center gap-1">
                             <AlertCircle className="w-3 h-3" />
-                            {errors[`item_${index}_price`]}
+                            {errors[`accessory_${index}_price`]}
                           </p>
                         )}
                       </div>
@@ -557,8 +898,8 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
                         <input
                           type="number"
                           min={1}
-                          value={item.quantity}
-                          onChange={(e) => handleUpdateItem(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                          value={acc.quantity}
+                          onChange={(e) => handleUpdateAccessory(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
                           className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-center font-bold text-slate-900 focus:outline-none focus:border-indigo-650 focus:ring-1 focus:ring-indigo-600"
                         />
                       </div>
@@ -566,14 +907,14 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
                   </div>
                 ))}
 
-                {/* Add Another Mobile Button */}
+                {/* Add Accessory Button */}
                 <button
                   type="button"
-                  onClick={handleAddItem}
-                  className="w-full py-3 border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 text-indigo-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                  onClick={() => handleAddAccessory()}
+                  className="w-full py-2.5 border-2 border-dashed border-amber-300 hover:border-amber-500 bg-amber-50/50 hover:bg-amber-100/70 text-amber-800 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
-                  <PlusCircle className="w-4 h-4" />
-                  <span>+ ADD ANOTHER MOBILE / ITEM</span>
+                  <PlusCircle className="w-4 h-4 text-amber-600" />
+                  <span>+ ADD ACCESSORY WITH WARRANTY</span>
                 </button>
               </div>
 
@@ -647,7 +988,12 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
                 <div className="border border-slate-200 bg-white rounded-lg p-3 space-y-1.5 text-xs">
                   <div className="flex justify-between text-slate-600 font-medium">
                     <span>Total Items</span>
-                    <span className="font-bold text-slate-900">{items.length} {items.length === 1 ? 'Mobile' : 'Mobiles'}</span>
+                    <span className="font-bold text-slate-900">
+                      {mobiles.length > 0 && `${mobiles.length} ${mobiles.length === 1 ? 'Mobile' : 'Mobiles'}`}
+                      {mobiles.length > 0 && accessories.length > 0 && ', '}
+                      {accessories.length > 0 && `${accessories.length} ${accessories.length === 1 ? 'Accessory' : 'Accessories'}`}
+                      {mobiles.length === 0 && accessories.length === 0 && '0 Items'}
+                    </span>
                   </div>
                   <div className="flex justify-between text-slate-600 font-medium">
                     <span>Subtotal</span>
@@ -682,7 +1028,7 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
               >
                 {isSubmitting
                   ? 'GENERATING RECEIPT...'
-                  : `GENERATE RECEIPT (${items.length} ${items.length === 1 ? 'MOBILE' : 'MOBILES'} - ₹${grandTotal.toLocaleString('en-IN')})`}
+                  : `GENERATE RECEIPT (${totalItemsCount} ${totalItemsCount === 1 ? 'ITEM' : 'ITEMS'} - ₹${grandTotal.toLocaleString('en-IN')})`}
               </button>
             </form>
           )}
@@ -696,7 +1042,7 @@ export const NewBillPage: React.FC<NewBillPageProps> = ({
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 Live Receipt Preview
               </h2>
-              <p className="text-xs text-slate-500">Real-time shop template output ({items.length} {items.length === 1 ? 'item' : 'items'})</p>
+              <p className="text-xs text-slate-500">Real-time shop template output ({totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'})</p>
             </div>
 
             <div className="flex items-center gap-2">

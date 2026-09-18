@@ -196,10 +196,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <div className="text-xs text-slate-550 mt-0.5 flex flex-wrap items-center gap-x-2">
                       <span>{receipt.customerName}</span>
                       <span>•</span>
-                      <span className="font-mono text-[11px]">
-                        IMEI: {receipt.items && receipt.items.length > 0 ? receipt.items[0].imei1 : receipt.imei1}
-                        {receipt.items && receipt.items.length > 1 && ` (+${receipt.items.length - 1})`}
-                      </span>
+                      {receipt.items && receipt.items[0]?.itemType === 'accessory' ? (
+                        <span className="text-[11px] text-amber-700 font-medium">
+                          Warranty: {receipt.items[0].warranty || 'Standard'}
+                          {receipt.items.length > 1 && ` (+${receipt.items.length - 1} more)`}
+                        </span>
+                      ) : (
+                        <span className="font-mono text-[11px]">
+                          IMEI: {receipt.items && receipt.items.length > 0 ? (receipt.items[0].imei1 || '-') : (receipt.imei1 || '-')}
+                          {receipt.items && receipt.items.length > 1 && ` (+${receipt.items.length - 1} more)`}
+                        </span>
+                      )}
                       <span>•</span>
                       <span>{receipt.date}</span>
                     </div>

@@ -243,65 +243,100 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
             <span className="ml-1.5">PRODUCT DETAILS</span>
           </div>
 
-          {/* Product Details Table */}
-          <div className="text-xs">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#121417] text-[#d4af37] text-[11px] font-black uppercase border border-[#121417] select-none">
-                  <th className="py-2 px-2 border-r border-[#333] text-center w-8">#</th>
-                  <th className="py-2 px-3 border-r border-[#333]">ITEM DETAILS</th>
-                  <th className="py-2 px-3 border-r border-[#333]">IMEI NUMBER</th>
-                  <th className="py-2 px-2 border-r border-[#333] text-center w-12">QTY</th>
-                  <th className="py-2 px-3 border-r border-[#333] text-right w-28">PRICE (₹)</th>
-                  <th className="py-2 px-3 text-right w-28">AMOUNT (₹)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => {
-                  const itemQty = item.quantity || 1;
-                  const itemPrice = Number(item.price) || 0;
-                  const itemTotal = itemPrice * itemQty;
+            {/* Product Details Table */}
+            <div className="text-xs">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#121417] text-[#d4af37] text-[11px] font-black uppercase border border-[#121417] select-none">
+                    <th className="py-2 px-2 border-r border-[#333] text-center w-8">#</th>
+                    <th className="py-2 px-3 border-r border-[#333]">ITEM DETAILS</th>
+                    <th className="py-2 px-3 border-r border-[#333]">IMEI / WARRANTY</th>
+                    <th className="py-2 px-2 border-r border-[#333] text-center w-12">QTY</th>
+                    <th className="py-2 px-3 border-r border-[#333] text-right w-28">PRICE (₹)</th>
+                    <th className="py-2 px-3 text-right w-28">AMOUNT (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item, index) => {
+                    const itemQty = item.quantity || 1;
+                    const itemPrice = Number(item.price) || 0;
+                    const itemTotal = itemPrice * itemQty;
+                    const isAccessory = item.itemType === 'accessory' || (!item.imei1 && item.warranty !== undefined);
 
-                  return (
-                    <tr key={item.id || index} className="bg-white border border-slate-300 border-t-0">
-                      <td className="py-2 px-2 border-r border-slate-300 text-center font-bold text-slate-700 align-middle">
-                        {index + 1}
-                      </td>
-                      <td className="py-2 px-3 border-r border-slate-300 align-middle">
-                        <div className="font-bold text-slate-900 text-sm">{item.mobileModel}</div>
-                        {item.ramStorage && (
-                          <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-                            {item.ramStorage} {item.color ? `(${item.color})` : ''}
+                    return (
+                      <tr key={item.id || index} className="bg-white border border-slate-300 border-t-0">
+                        <td className="py-2 px-2 border-r border-slate-300 text-center font-bold text-slate-700 align-middle">
+                          {index + 1}
+                        </td>
+                        <td className="py-2 px-3 border-r border-slate-300 align-middle">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-slate-900 text-sm">{item.mobileModel}</span>
+                            {isAccessory && (
+                              <span className="bg-amber-100 text-amber-800 border border-amber-300 text-[9px] font-bold px-1.5 py-0.2 rounded select-none">
+                                ACCESSORY
+                              </span>
+                            )}
                           </div>
-                        )}
-                      </td>
-                      <td className="py-2 px-3 border-r border-slate-300 font-mono text-[11px] text-slate-700 align-middle space-y-0.5">
-                        {item.imei1 && (
-                          <div>
-                            <span className="font-semibold text-slate-900">IMEI 1:</span> {item.imei1}
-                          </div>
-                        )}
-                        {appSettings.showImei2 && item.imei2 && (
-                          <div>
-                            <span className="font-semibold text-slate-900">IMEI 2:</span> {item.imei2}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-2 px-2 border-r border-slate-300 text-center font-bold text-slate-800 align-middle">
-                        {itemQty}
-                      </td>
-                      <td className="py-2 px-3 border-r border-slate-300 text-right font-mono font-semibold text-slate-900 align-middle">
-                        {formatCurrency(itemPrice)}
-                      </td>
-                      <td className="py-2 px-3 text-right font-mono font-bold text-slate-900 align-middle">
-                        {formatCurrency(itemTotal)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                          {item.ramStorage && (
+                            <div className="text-[11px] text-slate-500 font-medium mt-0.5">
+                              {item.ramStorage} {item.color ? `(${item.color})` : ''}
+                            </div>
+                          )}
+                          {!item.ramStorage && item.color && (
+                            <div className="text-[11px] text-slate-500 font-medium mt-0.5">
+                              Color: {item.color}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-2 px-3 border-r border-slate-300 font-mono text-[11px] text-slate-700 align-middle space-y-0.5">
+                          {isAccessory ? (
+                            <div className="font-sans">
+                              {item.warranty && item.warranty !== 'No Warranty' ? (
+                                <div className="flex items-center gap-1 text-slate-900 font-bold">
+                                  <span className="text-amber-600">🛡️</span>
+                                  <span>Warranty: {item.warranty}</span>
+                                </div>
+                              ) : (
+                                <span className="text-slate-450 font-medium">No Warranty</span>
+                              )}
+                            </div>
+                          ) : (
+                            <>
+                              {item.imei1 ? (
+                                <div>
+                                  <span className="font-semibold text-slate-900">IMEI 1:</span> {item.imei1}
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 font-sans">-</span>
+                              )}
+                              {appSettings.showImei2 && item.imei2 && (
+                                <div>
+                                  <span className="font-semibold text-slate-900">IMEI 2:</span> {item.imei2}
+                                </div>
+                              )}
+                              {item.warranty && (
+                                <div className="text-[10px] font-sans text-amber-700 font-semibold mt-0.5">
+                                  🛡️ {item.warranty}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </td>
+                        <td className="py-2 px-2 border-r border-slate-300 text-center font-bold text-slate-800 align-middle">
+                          {itemQty}
+                        </td>
+                        <td className="py-2 px-3 border-r border-slate-300 text-right font-mono font-semibold text-slate-900 align-middle">
+                          {formatCurrency(itemPrice)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono font-bold text-slate-900 align-middle">
+                          {formatCurrency(itemTotal)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
         </div>
 
         {/* Split Section: Payment Summary & Thank You Column */}
@@ -447,6 +482,12 @@ export const PrintableReceipt: React.FC<PrintableReceiptProps> = ({
                 </div>
               </div>
             </div>
+            {items.some(it => it.itemType === 'accessory' || (!it.imei1 && it.warranty)) && (
+              <div className="border-t border-slate-200 pt-1 mt-1 text-[9.5px] text-amber-800 font-semibold flex items-center gap-1">
+                <span>🛡️</span>
+                <span>Accessories Warranty: Warranty on accessories is valid as specified above against manufacturing defects. Physical and liquid damage not covered.</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

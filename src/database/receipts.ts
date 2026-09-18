@@ -3,11 +3,15 @@ import type { Receipt, AppSettings, ReceiptItem } from '../types';
 
 export function getReceiptItems(receipt: Receipt): ReceiptItem[] {
   if (receipt.items && receipt.items.length > 0) {
-    return receipt.items;
+    return receipt.items.map(item => ({
+      ...item,
+      itemType: item.itemType || (item.imei1 ? 'mobile' : (item.warranty !== undefined ? 'accessory' : 'mobile'))
+    }));
   }
   return [
     {
       id: 'item-1',
+      itemType: 'mobile',
       mobileModel: receipt.mobileModel || '',
       ramStorage: receipt.ramStorage,
       color: receipt.color,
@@ -38,9 +42,10 @@ export async function createReceipt(receiptData: Omit<Receipt, 'id' | 'billNumbe
   const billNumber = `${prefix}${formattedSeq}`;
   const timestamp = Date.now();
 
-  // If multiple items are provided, populate primary fields for backward compatibility/indexing
+  // If multiple items/accessories are provided, populate primary fields for backward compatibility/indexing
   const items = receiptData.items && receiptData.items.length > 0 ? receiptData.items : undefined;
-  const firstItem = items?.[0];
+  const firstMobile = items?.find(it => it.itemType === 'mobile' || it.imei1);
+  const firstItem = firstMobile || items?.[0];
 
   const primaryMobileModel = receiptData.mobileModel || firstItem?.mobileModel || '';
   const primaryImei1 = receiptData.imei1 || firstItem?.imei1 || '';
@@ -102,10 +107,12 @@ export async function searchReceipts(query: string): Promise<Receipt[]> {
     if (r.items && r.items.length > 0) {
       return r.items.some(it =>
         it.mobileModel.toLowerCase().includes(q) ||
-        it.imei1.includes(q) ||
+        (it.imei1 && it.imei1.includes(q)) ||
         (it.imei2 && it.imei2.includes(q)) ||
         (it.ramStorage && it.ramStorage.toLowerCase().includes(q)) ||
-        (it.color && it.color.toLowerCase().includes(q))
+        (it.color && it.color.toLowerCase().includes(q)) ||
+        (it.warranty && it.warranty.toLowerCase().includes(q)) ||
+        (it.itemType && it.itemType.toLowerCase().includes(q))
       );
     }
 

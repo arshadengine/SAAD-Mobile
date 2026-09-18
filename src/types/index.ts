@@ -13,11 +13,13 @@ export interface ShopSettings {
 
 export interface ReceiptItem {
   id?: string;
-  mobileModel: string;
+  itemType?: 'mobile' | 'accessory';
+  mobileModel: string; // Used as the item name for mobiles or accessories
   ramStorage?: string;
   color?: string;
-  imei1: string;
+  imei1?: string;
   imei2?: string;
+  warranty?: string; // e.g. "6 Months", "1 Year", "No Warranty"
   quantity: number;
   price: number;
 }

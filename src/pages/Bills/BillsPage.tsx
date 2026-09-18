@@ -3,7 +3,7 @@ import { searchReceipts, deleteReceipt } from '../../database/receipts';
 import type { Receipt, ShopSettings, AppSettings } from '../../types';
 import { PrintableReceipt } from '../../components/receipt/PrintableReceipt';
 import { handleBrowserPrint, generateReceiptPDF, shareReceipt } from '../../services/printAndShare';
-import { Search, FileText, Eye, Printer, Download, Share2, Trash2, Calendar, Phone, Hash, Smartphone } from 'lucide-react';
+import { Search, FileText, Eye, Printer, Download, Share2, Trash2, Calendar, Phone, Hash, Smartphone, Package, ShieldCheck } from 'lucide-react';
 
 interface BillsPageProps {
   shopSettings: ShopSettings;
@@ -108,7 +108,11 @@ export const BillsPage: React.FC<BillsPageProps> = ({ shopSettings, appSettings 
                     <td className="py-3 px-3 font-semibold text-slate-800 text-xs">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <div className="flex items-center gap-1.5">
-                          <Smartphone className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                          {receipt.items && receipt.items.length > 0 && receipt.items[0].itemType === 'accessory' ? (
+                            <Package className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          ) : (
+                            <Smartphone className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                          )}
                           <span>{receipt.items && receipt.items.length > 0 ? receipt.items[0].mobileModel : receipt.mobileModel}</span>
                         </div>
                         {receipt.items && receipt.items.length > 1 && (
@@ -119,13 +123,20 @@ export const BillsPage: React.FC<BillsPageProps> = ({ shopSettings, appSettings 
                       </div>
                     </td>
                     <td className="py-3 px-3 font-mono text-xs text-slate-600">
-                      <div className="flex items-center gap-1">
-                        <Hash className="w-3 h-3 text-slate-400" />
-                        {receipt.items && receipt.items.length > 0 ? receipt.items[0].imei1 : receipt.imei1}
-                      </div>
+                      {receipt.items && receipt.items.length > 0 && receipt.items[0].itemType === 'accessory' ? (
+                        <div className="flex items-center gap-1 text-amber-700 font-sans font-semibold text-[11px]">
+                          <ShieldCheck className="w-3 h-3 text-amber-600" />
+                          <span>{receipt.items[0].warranty || 'No Warranty'}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <Hash className="w-3 h-3 text-slate-400" />
+                          {receipt.items && receipt.items.length > 0 ? (receipt.items[0].imei1 || '-') : (receipt.imei1 || '-')}
+                        </div>
+                      )}
                       {receipt.items && receipt.items.length > 1 && (
                         <div className="text-[10px] text-indigo-600 font-sans font-semibold mt-0.5">
-                          {receipt.items.length} IMEIs on bill
+                          {receipt.items.length} items on bill
                         </div>
                       )}
                       {(!receipt.items || receipt.items.length <= 1) && receipt.imei2 && (

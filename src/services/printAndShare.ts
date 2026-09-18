@@ -33,8 +33,14 @@ export async function generateReceiptPDF(receipt: Receipt): Promise<void> {
 
 export async function shareReceipt(receipt: Receipt): Promise<boolean> {
   const itemsList = receipt.items && receipt.items.length > 0
-    ? receipt.items.map((it, idx) => `${idx + 1}. ${it.mobileModel} (IMEI: ${it.imei1}) - ₹${Number(it.price).toLocaleString('en-IN')}`).join('\n')
-    : `Item: ${receipt.mobileModel}\nIMEI: ${receipt.imei1}`;
+    ? receipt.items.map((it, idx) => {
+        if (it.itemType === 'accessory') {
+          const warrantyInfo = it.warranty ? ` (Warranty: ${it.warranty})` : '';
+          return `${idx + 1}. ${it.mobileModel}${warrantyInfo} - ₹${Number(it.price).toLocaleString('en-IN')}`;
+        }
+        return `${idx + 1}. ${it.mobileModel} (IMEI: ${it.imei1 || '-'}) - ₹${Number(it.price).toLocaleString('en-IN')}`;
+      }).join('\n')
+    : `Item: ${receipt.mobileModel}\nIMEI: ${receipt.imei1 || '-'}`;
 
   const textContent = `
 SAAD MOBILE - RECEIPT
