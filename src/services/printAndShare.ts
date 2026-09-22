@@ -15,11 +15,12 @@ export async function generateReceiptPDF(receipt: Receipt): Promise<void> {
   const filename = `SAAD-MOBILE-${receipt.billNumber}.pdf`;
 
   const opt = {
-    margin: [5, 5, 5, 5], // [top, left, bottom, right] in mm
+    margin: [4, 4, 4, 4], // [top, left, bottom, right] in mm
     filename: filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, logging: false },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'], before: '.html2pdf__page-break' }
   };
 
   try {
