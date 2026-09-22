@@ -12,6 +12,14 @@ export async function generateReceiptPDF(receipt: Receipt): Promise<void> {
     return;
   }
 
+  // Ensure both page 1 and page 2 are visible during PDF generation
+  const page1 = element.querySelector('.receipt-page-1') as HTMLElement | null;
+  const page2 = element.querySelector('.receipt-page-2') as HTMLElement | null;
+  const prevHidden1 = page1?.classList.contains('hidden');
+  const prevHidden2 = page2?.classList.contains('hidden');
+  if (page1 && prevHidden1) page1.classList.remove('hidden');
+  if (page2 && prevHidden2) page2.classList.remove('hidden');
+
   const filename = `SAAD-MOBILE-${receipt.billNumber}.pdf`;
 
   const opt = {
@@ -20,7 +28,7 @@ export async function generateReceiptPDF(receipt: Receipt): Promise<void> {
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, logging: false },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['css', 'legacy'], before: '.html2pdf__page-break' }
+    pagebreak: { mode: ['css'], before: '.receipt-page-2' }
   };
 
   try {
@@ -29,6 +37,9 @@ export async function generateReceiptPDF(receipt: Receipt): Promise<void> {
     console.error('Error generating PDF:', error);
     // Fallback if html2pdf fails
     window.print();
+  } finally {
+    if (page1 && prevHidden1) page1.classList.add('hidden');
+    if (page2 && prevHidden2) page2.classList.add('hidden');
   }
 }
 

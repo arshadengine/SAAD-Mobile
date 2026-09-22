@@ -166,7 +166,10 @@ export const BillsPage: React.FC<BillsPageProps> = ({ shopSettings, appSettings 
                           <Printer className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => generateReceiptPDF(receipt)}
+                          onClick={() => {
+                            setSelectedReceipt(receipt);
+                            setTimeout(() => generateReceiptPDF(receipt), 100);
+                          }}
                           className="p-1.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
                           title="Download PDF"
                         >

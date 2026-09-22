@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, TrendingUp, Receipt as ReceiptIcon, ArrowRight, Smartphone, Clock, Eye, Printer, Share2 } from 'lucide-react';
+import { PlusCircle, TrendingUp, Receipt as ReceiptIcon, ArrowRight, Smartphone, Clock, Eye, Printer, Share2, Download } from 'lucide-react';
 import { getDashboardStats } from '../../database/receipts';
 import type { Receipt, AppSettings, ShopSettings } from '../../types';
 import { PrintableReceipt } from '../../components/receipt/PrintableReceipt';
-import { handleBrowserPrint, shareReceipt } from '../../services/printAndShare';
+import { handleBrowserPrint, shareReceipt, generateReceiptPDF } from '../../services/printAndShare';
 
 interface DashboardPageProps {
   onNewBillClick: () => void;
@@ -263,10 +263,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-wrap gap-2 justify-end">
               <button
                 onClick={() => handleBrowserPrint()}
-                className="px-4 py-2 bg-slate-200 hover:bg-slate-350 text-slate-800 rounded-lg font-bold text-xs flex items-center gap-2"
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-350 text-slate-800 rounded-lg font-bold text-xs flex items-center gap-2 cursor-pointer"
               >
-                <Printer className="w-4 h-4" />
+                <Printer className="w-4 h-4 text-indigo-600" />
                 Print
+              </button>
+
+              <button
+                onClick={() => generateReceiptPDF(selectedReceipt)}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-350 text-slate-800 rounded-lg font-bold text-xs flex items-center gap-2 cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-indigo-600" />
+                Download PDF
               </button>
 
               <button
